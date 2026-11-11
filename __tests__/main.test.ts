@@ -15,9 +15,17 @@ jest.unstable_mockModule('../src/wait.js', () => ({ wait }))
 
 // The module being tested should be imported dynamically. This ensures that the
 // mocks are used in place of any actual dependencies.
-const { run } = await import('../src/main.js')
+const { run, calculateTotal, getUserData } = await import('../src/main.js')
 
 describe('main.ts', () => {
+  it('Calculates the total price', () => {
+    expect(calculateTotal(10, 2)).toBe('Total price is:20')
+  })
+
+  it('Returns the user ID', () => {
+    expect(getUserData('user-123')).toEqual({ id: 'user-123' })
+  })
+
   beforeEach(() => {
     // Set the action's inputs as return values from core.getInput().
     core.getInput.mockImplementation(() => '500')
