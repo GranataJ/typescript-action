@@ -10,15 +10,16 @@ on:
  
 permissions:
   contents: read
+  actions: read
  
 jobs:
   deploy:
     name: Deploy to ${{ inputs.environment-name }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment-name }}
-    # if: |
-    #   github.ref == 'refs/heads/main' &&
-    #   github.event.workflow_run.conclusion == 'success'
+    if: |
+      github.ref == 'refs/heads/main' &&
+      github.event.workflow_run.conclusion == 'success'
  
     steps:
       - name: Download Build Artifact
