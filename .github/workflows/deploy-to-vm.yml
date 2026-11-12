@@ -2,40 +2,48 @@ name: Demo CICD Multi-Stage Deployment
 
 on:
   workflow_run:
-    workflows: ["Demo CI Pipeline"]
+    workflows: ["Demo CI Pipeline"] # 🌟 CRUCIAL: Match the exact name field from the top of the CI workflow
     types:
-      - completed
+      - completed              # Triggers when the target workflow completely finishes running
 permissions:
-  actions: read
-  id-token: write
-  contents: read
+  id-token: write # 🌟 Required for requesting the JWT OIDC token
+  contents: read  # 🌟 Required for actions/checkout
 jobs:
+  # Call your completely separate existing CI file
+  ci:
+    uses: ./.github/workflows/Demo-CI-Pipeline-ci.yml
+ 
+  # =========================================================================
+  # DEPLOY TO DEV (REUSING TEMPLATE)
+  # =========================================================================
   deploy-dev:
     name: Dev Stage
-    if: >-
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_branch == 'main'
+    needs: ci    
     uses: ./.github/workflows/deploy-template.yml
     with:
-      environment-name: 'dev'
-      artifact-run-id: ${{ github.event.workflow_run.id }}
+      environment-name: 'dev' 
+    # 🌟 Explicitly maps the secret permission layer to the template
     secrets: inherit
-
+ 
+  # =========================================================================
+  # DEPLOY TO UAT (REUSING TEMPLATE)
+  # =========================================================================
   deploy-uat:
     name: UAT Stage
-    needs: deploy-dev
+    needs: deploy-dev     
     uses: ./.github/workflows/deploy-template.yml
     with:
-      environment-name: 'uat'
-      artifact-run-id: ${{ github.event.workflow_run.id }}
-    secrets: inherit
-
+      environment-name: 'uat'    
+    # 🌟 Explicitly maps the secret permission layer to the template
+    secrets: inherit 
+  # =========================================================================
+  # DEPLOY TO PROD (REUSING TEMPLATE)
+  # =========================================================================
   deploy-prod:
     name: Prod Stage
-    needs: deploy-uat
+    needs: deploy-uat   
     uses: ./.github/workflows/deploy-template.yml
     with:
-      environment-name: 'prod'
-      artifact-run-id: ${{ github.event.workflow_run.id }}
+      environment-name: 'prod'  
+    # 🌟 Explicitly maps the secret permission layer to the template
     secrets: inherit
