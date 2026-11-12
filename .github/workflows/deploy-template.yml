@@ -7,8 +7,13 @@ on:
         required: true
         type: string
         description: "The targeted GitHub environment name (e.g., dev, uat, prod)"
+      artifact-run-id:
+        required: true
+        type: string
+        description: "The CI workflow run containing the build artifact"
  
 permissions:
+  actions: read
   contents: read
  
 jobs:
@@ -16,15 +21,14 @@ jobs:
     name: Deploy to ${{ inputs.environment-name }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment-name }}
-    # if: |
-    #   github.ref == 'refs/heads/main' &&
-    #   github.event.workflow_run.conclusion == 'success'
  
     steps:
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
           name: node-app
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.artifact-run-id }}
  
       - name: Verify Build Artifact
         run: test -f dist/index.js
